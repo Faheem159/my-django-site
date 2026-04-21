@@ -1,0 +1,51 @@
+{% extends 'myapp/base.html' %}
+{% block title %}Messages{% endblock %}
+{% block content %}
+
+<div style="max-width:600px; margin:0 auto;">
+
+  <div style="display:flex; align-items:center; gap:12px; margin-bottom:1.5rem;">
+    <a href="{% url 'tenant_portal' %}" style="font-size:13px; color:#185FA5; text-decoration:none;">← Back</a>
+    <div class="avatar">{{ landlord.username|first|upper }}</div>
+    <div>
+      <div style="font-size:15px; font-weight:500;">{{ landlord.username }}</div>
+      <div style="font-size:12px; color:#94a3b8;">Landlord</div>
+    </div>
+  </div>
+
+  <div style="margin-bottom:1rem;">
+    {% for msg in chat_messages %}
+    <div style="display:flex; gap:10px; margin-bottom:12px; {% if msg.sender == request.user %}flex-direction:row-reverse;{% endif %}">
+      <div class="avatar" style="width:32px; height:32px; font-size:12px; flex-shrink:0;">{{ msg.sender.username|first|upper }}</div>
+      <div style="max-width:70%;">
+        <div style="font-size:11px; color:#94a3b8; margin-bottom:4px; {% if msg.sender == request.user %}text-align:right;{% endif %}">
+          {{ msg.sender.username }} · {{ msg.created_at|date:"M d, Y" }}
+        </div>
+        <div style="padding:10px 14px; border-radius:12px; font-size:13px; line-height:1.6;
+          {% if msg.sender == request.user %}
+            background:#185FA5; color:#fff; border-bottom-right-radius:4px;
+          {% else %}
+            background:#f0f4f8; color:#1a1a18; border-bottom-left-radius:4px;
+          {% endif %}">
+          {{ msg.message }}
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div style="text-align:center; color:#94a3b8; font-size:13px; padding:2rem 0;">No messages yet. Start the conversation!</div>
+    {% endfor %}
+  </div>
+
+  <div class="card">
+    <form method="POST">
+      {% csrf_token %}
+      <div class="form-group">
+        <textarea name="message" rows="3" placeholder="Type a message..."></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Send</button>
+    </form>
+  </div>
+
+</div>
+
+{% endblock %}

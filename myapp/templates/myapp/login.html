@@ -1,0 +1,113 @@
+{% extends 'myapp/base.html' %}
+{% block title %}Welcome{% endblock %}
+{% block content %}
+
+
+<div style="max-width: 420px; margin: 4rem auto;">
+  <h1 style="font-family: 'DM Serif Display', serif; font-size: 28px; font-weight: 400; margin-bottom: 1.5rem; text-align:center;">Maintenance Portal</h1>
+
+  <!-- Tabs -->
+  <div style="display:flex; background:#fff; border:1px solid #dde3ea; border-radius:10px; padding:4px; margin-bottom:1.5rem;">
+    <button onclick="switchTab('login')" id="tab-login" style="flex:1; padding:8px; border:none; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; cursor:pointer; background:#185FA5; color:#fff; transition:all 0.15s;">Log in</button>
+    <button onclick="switchTab('signup')" id="tab-signup" style="flex:1; padding:8px; border:none; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; cursor:pointer; background:none; color:#64748b; transition:all 0.15s;">Sign up</button>
+  </div>
+
+  <!-- Login form -->
+  <div id="panel-login" class="card">
+    <form method="POST" action="{% url 'login' %}">
+      {% csrf_token %}
+      <input type="hidden" name="form_type" value="login">
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input type="text" name="username" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" required>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;">Log in</button>
+    </form>
+  </div>
+
+  <!-- Signup form -->
+  <div id="panel-signup" class="card" style="display:none;">
+    <form method="POST" action="{% url 'signup' %}">
+      {% csrf_token %}
+      <input type="hidden" name="form_type" value="signup">
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input type="text" name="username" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirm password</label>
+        <input type="password" name="confirm" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">I am a...</label>
+        <div style="display:flex; gap:10px; margin-top:4px;">
+          <label style="flex:1; cursor:pointer;">
+            <input type="radio" name="role" value="Landlord" style="display:none;">
+            <div class="role-btn" id="btn-landlord">
+              <div style="font-size:20px; margin-bottom:4px;">🏠</div>
+              <div style="font-size:13px; font-weight:500;">Landlord</div>
+              <div style="font-size:11px; color:#888780;">I manage properties</div>
+            </div>
+          </label>
+          <label style="flex:1; cursor:pointer;">
+            <input type="radio" name="role" value="Tenant" style="display:none;">
+            <div class="role-btn" id="btn-tenant">
+              <div style="font-size:20px; margin-bottom:4px;">🔑</div>
+              <div style="font-size:13px; font-weight:500;">Tenant</div>
+              <div style="font-size:11px; color:#888780;">I rent a property</div>
+            </div>
+          </label>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%; margin-top:0.5rem;">Create account</button>
+    </form>
+  </div>
+</div>
+
+<style>
+  .role-btn {
+    border: 0.5px solid #d3d1c7;
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+    transition: all 0.15s;
+    background: #fff;
+  }
+  .role-btn.active {
+    border-color: #185FA5;
+    background: #E6F1FB;
+  }
+</style>
+
+<script>
+  function switchTab(tab) {
+    document.getElementById('panel-login').style.display = tab === 'login' ? 'block' : 'none';
+    document.getElementById('panel-signup').style.display = tab === 'signup' ? 'block' : 'none';
+    document.getElementById('tab-login').style.background = tab === 'login' ? '#185FA5' : 'none';
+    document.getElementById('tab-login').style.color = tab === 'login' ? '#fff' : '#64748b';
+    document.getElementById('tab-signup').style.background = tab === 'signup' ? '#185FA5' : 'none';
+    document.getElementById('tab-signup').style.color = tab === 'signup' ? '#fff' : '#64748b';
+  }
+
+  document.querySelectorAll('input[name="role"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+      radio.nextElementSibling.classList.add('active');
+    });
+  });
+
+  // Check if we should show signup tab (e.g. after failed signup)
+  {% if request.GET.tab == 'signup' %}
+  switchTab('signup');
+  {% endif %}
+</script>
+
+{% endblock %}

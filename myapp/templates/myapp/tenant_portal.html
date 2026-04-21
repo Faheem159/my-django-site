@@ -1,0 +1,170 @@
+{% extends 'myapp/base.html' %}
+{% block title %}Tenant Portal{% endblock %}
+{% block content %}
+
+<div style="display: grid; grid-template-columns: 220px 1fr; gap: 1.5rem;">
+
+  <div>
+    <div class="section-label">Unit inventory</div>
+    <div style="border: 0.5px solid #d3d1c7; border-radius: 8px; background:#fff; padding: 10px 12px; margin-bottom: 8px;">
+      <div style="font-size:13px; font-weight:500;">Refrigerator</div>
+      <div style="font-size:11px; color:#888780;">Samsung RT38 · #12345</div>
+    </div>
+    <div style="border: 0.5px solid #d3d1c7; border-radius: 8px; background:#fff; padding: 10px 12px; margin-bottom: 8px;">
+      <div style="font-size:13px; font-weight:500;">Dishwasher</div>
+      <div style="font-size:11px; color:#888780;">Bosch Series 4 · #67890</div>
+    </div>
+    <div style="border: 0.5px solid #d3d1c7; border-radius: 8px; background:#fff; padding: 10px 12px; margin-bottom: 8px;">
+      <div style="font-size:13px; font-weight:500;">HVAC System</div>
+      <div style="font-size:11px; color:#888780;">Carrier Comfort · Jan 2026</div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <div class="section-label" style="margin-bottom:1rem;">Report an issue</div>
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select name="category">
+            <option value="plumbing">Plumbing</option>
+            <option value="electrical">Electrical</option>
+            <option value="heating">Heating</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Urgency</label>
+          <div style="display:flex; gap:8px;">
+            <label style="flex:1; text-align:center; padding:8px; border:0.5px solid #d3d1c7; border-radius:8px; cursor:pointer; font-size:12px; font-weight:500; background:#fff;" id="label-low">
+              <input type="radio" name="urgency" value="low" checked style="display:none;" onchange="highlightUrgency('low')"> Low
+            </label>
+            <label style="flex:1; text-align:center; padding:8px; border:0.5px solid #d3d1c7; border-radius:8px; cursor:pointer; font-size:12px; font-weight:500; background:#fff;" id="label-medium">
+              <input type="radio" name="urgency" value="medium" style="display:none;" onchange="highlightUrgency('medium')"> Medium
+            </label>
+            <label style="flex:1; text-align:center; padding:8px; border:0.5px solid #d3d1c7; border-radius:8px; cursor:pointer; font-size:12px; font-weight:500; background:#fff;" id="label-emergency">
+              <input type="radio" name="urgency" value="emergency" style="display:none;" onchange="highlightUrgency('emergency')"> Emergency
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea name="description" rows="3" placeholder="What's wrong? Be specific."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Photos (optional)</label>
+          <div id="upload-zone" style="border: 1px dashed #b4b2a9; border-radius: 8px; padding: 18px; text-align: center; color: #888780; font-size: 12px; cursor: pointer;" onclick="document.getElementById('photos').click()">
+            Tap to attach photos
+          </div>
+          <input type="file" name="photos" id="photos" accept="image/*" multiple style="display:none" onchange="handleFiles(this)">
+          <div id="file-list" style="margin-top:8px;"></div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">Submit request</button>
+      </form>
+    </div>
+
+    <div class="section-label">My tickets</div>
+    <div class="card" style="padding: 0; overflow: hidden;">
+      <table style="width:100%; border-collapse:collapse; font-size:13px;">
+        <thead>
+          <tr style="background:#f4f3f0;">
+            <th style="padding:10px 14px; text-align:left; font-weight:500; color:#5f5e5a;">Category</th>
+            <th style="padding:10px 14px; text-align:left; font-weight:500; color:#5f5e5a;">Date</th>
+            <th style="padding:10px 14px; text-align:left; font-weight:500; color:#5f5e5a;">Urgency</th>
+            <th style="padding:10px 14px; text-align:left; font-weight:500; color:#5f5e5a;">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for req in my_requests %}
+          <tr style="border-top: 0.5px solid #d3d1c7;">
+            <td style="padding:10px 14px;">
+              <a href="{% url 'ticket_detail' req.pk %}" style="color:#185FA5; text-decoration:none; font-weight:500;">{{ req.get_category_display }}</a>
+            </td>
+            <td style="padding:10px 14px; color:#888780;">{{ req.created_at|date:"M d, Y" }}</td>
+            <td style="padding:10px 14px;">{{ req.get_urgency_display }}</td>
+            <td style="padding:10px 14px;">
+              <span class="status-pill s-{{ req.status|slugify }}">{{ req.get_status_display }}</span>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" style="padding:14px; color:#888780; text-align:center;">No requests yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  let selectedFiles = [];
+
+  function handleFiles(input) {
+    const newFiles = Array.from(input.files);
+    newFiles.forEach(file => {
+      if (!selectedFiles.find(f => f.name === file.name)) {
+        selectedFiles.push(file);
+      }
+    });
+    input.value = '';
+    renderFileList();
+  }
+
+  function removeFile(name) {
+    selectedFiles = selectedFiles.filter(f => f.name !== name);
+    renderFileList();
+  }
+
+  function renderFileList() {
+    const list = document.getElementById('file-list');
+    list.innerHTML = '';
+    selectedFiles.forEach(file => {
+      const row = document.createElement('div');
+      row.style = 'display:flex; align-items:center; justify-content:space-between; background:#E6F1FB; border:0.5px solid #185FA5; border-radius:8px; padding:8px 12px; margin-bottom:6px;';
+      row.innerHTML = `
+        <span style="font-size:12px; font-weight:500; color:#185FA5;">${file.name}</span>
+        <button type="button" onclick="removeFile('${file.name}')" style="font-size:11px; font-weight:500; color:#A32D2D; background:none; border:none; cursor:pointer; padding:2px 6px; border-radius:4px;">Remove</button>
+      `;
+      list.appendChild(row);
+    });
+    document.getElementById('upload-zone').style.display = selectedFiles.length >= 5 ? 'none' : '';
+  }
+
+  document.querySelector('form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const dt = new DataTransfer();
+    selectedFiles.forEach(f => dt.items.add(f));
+    document.getElementById('photos').files = dt.files;
+    this.submit();
+  });
+
+  function highlightUrgency(selected) {
+    document.getElementById('label-low').style.background = '#fff';
+    document.getElementById('label-low').style.borderColor = '#d3d1c7';
+    document.getElementById('label-low').style.color = '#1a1a18';
+    document.getElementById('label-medium').style.background = '#fff';
+    document.getElementById('label-medium').style.borderColor = '#d3d1c7';
+    document.getElementById('label-medium').style.color = '#1a1a18';
+    document.getElementById('label-emergency').style.background = '#fff';
+    document.getElementById('label-emergency').style.borderColor = '#d3d1c7';
+    document.getElementById('label-emergency').style.color = '#1a1a18';
+
+    if (selected === 'low') {
+      document.getElementById('label-low').style.background = '#EAF3DE';
+      document.getElementById('label-low').style.borderColor = '#3B6D11';
+      document.getElementById('label-low').style.color = '#3B6D11';
+    } else if (selected === 'medium') {
+      document.getElementById('label-medium').style.background = '#FAEEDA';
+      document.getElementById('label-medium').style.borderColor = '#854F0B';
+      document.getElementById('label-medium').style.color = '#854F0B';
+    } else if (selected === 'emergency') {
+      document.getElementById('label-emergency').style.background = '#FCEBEB';
+      document.getElementById('label-emergency').style.borderColor = '#A32D2D';
+      document.getElementById('label-emergency').style.color = '#A32D2D';
+    }
+  }
+
+  highlightUrgency('low');
+</script>
+
+{% endblock %}

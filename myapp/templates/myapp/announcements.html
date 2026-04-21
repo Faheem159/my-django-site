@@ -1,0 +1,50 @@
+{% extends 'myapp/base.html' %}
+{% block title %}Announcements{% endblock %}
+{% block content %}
+
+<div style="max-width:600px; margin:0 auto;">
+
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+    <h1 style="font-family:'DM Serif Display',serif; font-size:26px; font-weight:400;">Announcements</h1>
+    <a href="{% url 'dashboard' %}" style="font-size:13px; color:#185FA5; text-decoration:none;">← Back</a>
+  </div>
+
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="section-label" style="margin-bottom:1rem;">Post new announcement</div>
+    <form method="POST">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">Title</label>
+        <input type="text" name="title" placeholder="e.g. Elevator out of service">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Message</label>
+        <textarea name="body" rows="3" placeholder="Write your announcement..."></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Post announcement</button>
+    </form>
+  </div>
+
+  <div class="section-label">Posted announcements</div>
+
+  {% for announcement in announcements %}
+  <div class="card" style="margin-bottom:0.75rem;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+      <div>
+        <div style="font-size:15px; font-weight:500; margin-bottom:4px;">{{ announcement.title }}</div>
+        <div style="font-size:13px; color:#64748b; margin-bottom:8px;">{{ announcement.body }}</div>
+        <div style="font-size:11px; color:#94a3b8;">{{ announcement.created_at|date:"M d, Y" }}</div>
+      </div>
+      <form method="POST" action="{% url 'delete_announcement' announcement.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm" style="color:#A32D2D; background:#FCEBEB; border:none;">Delete</button>
+      </form>
+    </div>
+  </div>
+  {% empty %}
+  <div style="text-align:center; color:#94a3b8; font-size:13px; padding:2rem 0;">No announcements yet.</div>
+  {% endfor %}
+
+</div>
+
+{% endblock %}
