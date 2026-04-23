@@ -11,7 +11,11 @@ class Property(models.Model):
 
 class MaintenanceRequest(models.Model):
     STATUS_CHOICES = [('open', 'Open'), ('in_progress', 'In Progress'), ('resolved', 'Resolved')]
-    URGENCY_CHOICES = [('low', 'Low'), ('medium', 'Medium'), ('emergency', 'Emergency')]
+    URGENCY_CHOICES = [
+        ('low', 'General Maintenance'),
+        ('medium', 'Urgent Repair'),
+        ('emergency', 'Emergency / Life Safety')
+    ]
     CATEGORY_CHOICES = [('plumbing', 'Plumbing'), ('electrical', 'Electrical'), ('heating', 'Heating'),
                         ('other', 'Other')]
 
